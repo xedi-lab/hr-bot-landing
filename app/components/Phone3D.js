@@ -2,528 +2,493 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 
-/* ── Real app design tokens ── */
-const C = {
-  bg: '#F2F2F7',
-  card: '#FFFFFF',
-  text: '#000000',
-  textSec: '#8E8E93',
-  textMuted: '#C7C7CC',
+/* ─── Palette ─── */
+const S = {
+  bg: '#111113',
+  card: 'rgba(255,255,255,0.06)',
+  cardBorder: 'rgba(255,255,255,0.09)',
   green: '#34C759',
-  greenBg: 'rgba(52,199,89,0.12)',
-  blue: '#007AFF',
-  blueBg: 'rgba(0,122,255,0.12)',
-  separator: 'rgba(0,0,0,0.08)',
-  tgHeader: '#1C1C1E',
+  greenDim: 'rgba(52,199,89,0.14)',
+  greenBorder: 'rgba(52,199,89,0.28)',
+  blue: '#0A84FF',
+  orange: '#FF9F0A',
+  text: '#FFFFFF',
+  textSec: 'rgba(255,255,255,0.5)',
+  textMuted: 'rgba(255,255,255,0.25)',
+  sep: 'rgba(255,255,255,0.07)',
 };
 
-const cardStyle = {
-  background: C.card,
-  borderRadius: 18,
-  boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-};
-
-function CountUp({ to, duration = 1100, decimals = 0 }) {
+/* ─── CountUp ─── */
+function CountUp({ to, duration = 1100 }) {
   const [v, setV] = useState(to);
   const ran = useRef(false);
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
     setV(0);
-    let start = null, raf;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      const val = to * (1 - Math.pow(1 - p, 3));
-      setV(decimals ? parseFloat(val.toFixed(decimals)) : Math.round(val));
+    let s = null, raf;
+    const step = ts => {
+      if (!s) s = ts;
+      const p = Math.min((ts - s) / duration, 1);
+      setV(Math.round(to * (1 - Math.pow(1 - p, 3))));
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, []);
-  return <>{decimals ? v.toFixed(decimals) : v.toLocaleString('ru-RU')}</>;
+  return <>{v.toLocaleString('ru-RU')}</>;
 }
 
-/* ── Telegram header ── */
-function TgHeader() {
+/* ─── Pill badge ─── */
+function Badge({ color = S.green, children }) {
   return (
-    <div style={{
-      background: C.tgHeader, padding: '10px 14px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
-    }}>
-      <span style={{ color: '#fff', fontSize: 16, opacity: 0.7 }}>✕</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <div style={{
-          width: 26, height: 26, borderRadius: '50%', background: '#5AABF5',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 800, color: '#fff',
-        }}>H</div>
-        <span style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>HR-BOT</span>
-      </div>
-      <span style={{ color: '#fff', fontSize: 16, opacity: 0.7 }}>···</span>
-    </div>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      background: `${color}18`, border: `1px solid ${color}30`,
+      borderRadius: 20, padding: '3px 9px',
+      fontSize: 9, fontWeight: 700, color, letterSpacing: '0.04em',
+    }}>{children}</span>
   );
 }
 
-/* ── Bottom nav ── */
-function BottomNav({ active }) {
-  const tabs = [
-    { icon: '🏠', label: 'Главная' },
-    { icon: '📅', label: 'График' },
-    { icon: '👤', label: 'Профиль' },
-    { icon: '⚙️', label: 'Админ' },
-  ];
+/* ════════════════════════════════════════
+   SCREEN 1 — DASHBOARD
+════════════════════════════════════════ */
+function DashScreen() {
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-      borderTop: `1px solid ${C.separator}`,
-      display: 'flex', padding: '8px 0 14px', flexShrink: 0,
-    }}>
-      {tabs.map((t, i) => {
-        const isActive = i === active;
-        return (
-          <div key={i} style={{
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-          }}>
-            <span style={{ fontSize: 20 }}>{t.icon}</span>
-            <span style={{
-              fontSize: 9, fontWeight: isActive ? 700 : 400,
-              color: isActive ? C.text : C.textSec,
-            }}>{t.label}</span>
-            {isActive && (
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: C.text, marginTop: 1 }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   SCREEN 1 — ГЛАВНАЯ
-══════════════════════════════════════════════════════ */
-export function HomeScreen({ animate }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-      <TgHeader />
-      <div style={{ flex: 1, padding: '12px 12px 0', overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-        {/* Greeting card */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.05 }}
-          style={{ ...cardStyle, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: 12, color: C.textSec, marginBottom: 2 }}>Привет,</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: '-0.02em', lineHeight: 1 }}>Алексей</div>
-            <div style={{ fontSize: 11, color: C.textSec, marginTop: 4 }}>ООО АИС</div>
-          </div>
-          <div style={{
-            background: '#F2F2F7', borderRadius: 20, padding: '5px 10px',
-            display: 'flex', alignItems: 'center', gap: 5,
-          }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.textMuted }} />
-            <span style={{ fontSize: 11, color: C.textSec, fontWeight: 500 }}>Не на смене</span>
-          </div>
-        </motion.div>
-
-        {/* 3 stats */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {[
-            { val: animate ? <CountUp to={12} duration={800} /> : '0', label: 'Смен' },
-            { val: animate ? <><CountUp to={14} duration={900} /><span style={{ fontSize: 13 }}>.2ч</span></> : '0', label: 'Часов' },
-            { val: animate ? <><CountUp to={7106} duration={1100} /><span style={{ fontSize: 13 }}>₽</span></> : '0', label: 'Заработано' },
-          ].map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.1 + i * 0.07 }}
-              style={{ ...cardStyle, flex: 1, padding: '12px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{s.val}</div>
-              <div style={{ fontSize: 10, color: C.textSec, marginTop: 5 }}>{s.label}</div>
-            </motion.div>
-          ))}
+    <div style={{ padding: '14px 14px 0', display: 'flex', flexDirection: 'column', gap: 10, height: '100%' }}>
+      {/* Greeting */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+        <div style={{ fontSize: 10, color: S.textMuted }}>Пятница, 16 мая 2026</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+          <div style={{ fontSize: 19, fontWeight: 800, color: S.text }}>Привет, Алексей 👋</div>
+          <Badge color={S.green}>● на смене</Badge>
         </div>
+      </motion.div>
 
-        {/* How it works */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }}
-          style={{ ...cardStyle, padding: '14px 16px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.textSec, letterSpacing: '0.06em', marginBottom: 10 }}>КАК ЭТО РАБОТАЕТ</div>
-          {[
-            ['Смена открывается', 'автоматически', ' по расписанию'],
-            ['Подтверди присутствие', 'нажав кнопку', ''],
-            ['В конце дня смена закроется', 'автоматически в 21:00', ''],
-          ].map(([pre, bold, post], i) => (
-            <div key={i} style={{ fontSize: 12, color: C.text, marginBottom: 7, lineHeight: 1.4 }}>
-              {i + 1}. {pre} <strong>{bold}</strong>{post}
+      {/* Main earnings card */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+        style={{
+          background: `linear-gradient(135deg, rgba(52,199,89,0.2) 0%, rgba(52,199,89,0.06) 100%)`,
+          border: `1px solid ${S.greenBorder}`, borderRadius: 20, padding: '16px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+        {/* bg glow */}
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(52,199,89,0.15)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(52,199,89,0.7)', letterSpacing: '0.07em', marginBottom: 6 }}>К ВЫПЛАТЕ В МАЕ</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ fontSize: 34, fontWeight: 900, color: S.green, letterSpacing: '-0.03em', lineHeight: 1 }}>
+            <CountUp to={24800} duration={1200} />
+          </span>
+          <span style={{ fontSize: 18, fontWeight: 700, color: S.green }}>₽</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          {[['96 ч', 'отработано'], ['258 ₽/ч', 'ставка'], ['↑ 12%', 'vs прошлый мес.']].map(([v, l]) => (
+            <div key={l} style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 10, padding: '5px 9px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: S.green }}>{v}</div>
+              <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.35)' }}>{l}</div>
             </div>
           ))}
-        </motion.div>
-      </div>
-      <BottomNav active={0} />
+        </div>
+        {/* pulse dot */}
+        <motion.div animate={{ scale: [1, 1.6, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2.2 }}
+          style={{ position: 'absolute', top: 14, right: 14, width: 8, height: 8, borderRadius: '50%', background: S.green }} />
+      </motion.div>
+
+      {/* 3 stat cards */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        style={{ display: 'flex', gap: 8 }}>
+        {[
+          { icon: '📅', val: <CountUp to={12} duration={900} />, label: 'смен в мае' },
+          { icon: '🕐', val: <><CountUp to={38} duration={1000} />ч</>, label: 'эта неделя' },
+          { icon: '⭐', val: '4.9', label: 'рейтинг' },
+        ].map((s, i) => (
+          <div key={i} style={{ flex: 1, background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: 16, padding: '12px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: S.text, lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontSize: 8, color: S.textMuted, marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Next shift */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
+        style={{ background: S.card, border: `1px solid ${S.cardBorder}`, borderRadius: 16, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: S.greenDim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📅</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, color: S.textMuted, marginBottom: 2 }}>Следующая смена</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: S.text }}>Завтра, 09:00 – 18:00</div>
+          <div style={{ fontSize: 10, color: S.textSec }}>Офис на Ленина · 9 ч</div>
+        </div>
+        <div style={{ width: 7, height: 7, borderRadius: '50%', background: S.green, boxShadow: `0 0 8px ${S.green}`, flexShrink: 0 }} />
+      </motion.div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   SCREEN 2 — ГРАФИК
-══════════════════════════════════════════════════════ */
-const calDays = [
-  [null, null, null, null, 1, 2, 3],
-  [4, 5, 6, 7, 8, 9, 10],
-  [11, 12, 13, 14, 15, 16, 17],
-  [18, 19, 20, 21, 22, 23, 24],
-  [25, 26, 27, 28, 29, 30, 31],
+/* ════════════════════════════════════════
+   SCREEN 2 — SCHEDULE
+════════════════════════════════════════ */
+const shifts = [
+  { date: '17 мая', day: 'Сб', time: '09:00–18:00', loc: 'Офис', color: S.green, status: 'Плановая' },
+  { date: '19 мая', day: 'Пн', time: '10:00–19:00', loc: 'Склад №2', color: S.blue, status: 'Плановая' },
+  { date: '21 мая', day: 'Ср', time: '09:00–18:00', loc: 'Офис', color: S.green, status: 'Плановая' },
+  { date: '23 мая', day: 'Пт', time: '08:00–17:00', loc: 'ТЦ Галерея', color: S.orange, status: 'Плановая' },
 ];
-const worked = [11, 12, 13]; // blue
-const planned = [16, 17, 18, 21, 22, 25, 26, 29, 30]; // green
-
-export function ScheduleScreen({ animate }) {
+function ScheduleScreen() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-      <TgHeader />
-      <div style={{ flex: 1, padding: '12px 12px 0', overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ fontSize: 26, fontWeight: 800, color: C.text, letterSpacing: '-0.02em' }}>График</div>
+    <div style={{ padding: '14px 14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+        <div style={{ fontSize: 19, fontWeight: 800, color: S.text }}>График смен</div>
+        <div style={{ fontSize: 10, color: S.textMuted, marginTop: 2 }}>Май 2026 · 4 плановых смены</div>
+      </motion.div>
 
-        {/* Calendar card */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.1 }}
-          style={{ ...cardStyle, padding: '12px' }}>
-          {/* Month nav */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ ...cardStyle, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>‹</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Май 2026</div>
-            <div style={{ ...cardStyle, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>›</div>
-          </div>
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 10, justifyContent: 'center' }}>
-            {[['#34C759', 'Плановая'], ['#007AFF', 'Отработана'], ['#1A8C3A', 'Выполнена']].map(([color, label]) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
-                <span style={{ fontSize: 8.5, color: C.textSec }}>{label}</span>
-              </div>
-            ))}
-          </div>
-          {/* Day headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
-            {['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'].map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: 9, fontWeight: 600, color: C.textSec, paddingBottom: 2 }}>{d}</div>
-            ))}
-          </div>
-          {/* Days grid */}
-          {calDays.map((week, wi) => (
-            <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
-              {week.map((day, di) => {
-                const isWorked = day && worked.includes(day);
-                const isPlanned = day && planned.includes(day);
-                return (
-                  <motion.div key={di}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={animate ? { opacity: 1, scale: 1 } : {}}
-                    transition={{ delay: 0.15 + (wi * 7 + di) * 0.012 }}
-                    style={{
-                      height: 30, borderRadius: 8, display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', justifyContent: 'center', gap: 1,
-                      background: isWorked ? C.blueBg : isPlanned ? C.greenBg : 'transparent',
-                    }}
-                  >
-                    <span style={{
-                      fontSize: 11, fontWeight: (isWorked || isPlanned) ? 700 : 400,
-                      color: isWorked ? C.blue : isPlanned ? C.green : day ? '#8E8E93' : 'transparent',
-                    }}>{day || ''}</span>
-                    {(isWorked || isPlanned) && (
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: isWorked ? C.blue : '#1A8C3A' }} />
-                    )}
-                  </motion.div>
-                );
-              })}
+      {/* Month mini-strip */}
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        style={{ display: 'flex', gap: 6, overflowX: 'hidden' }}>
+        {[15, 16, 17, 18, 19, 20, 21].map((d, i) => {
+          const active = [17, 19, 21].includes(d);
+          const today = d === 16;
+          return (
+            <div key={d} style={{
+              flex: 1, textAlign: 'center', padding: '8px 4px', borderRadius: 12,
+              background: active ? S.greenDim : today ? 'rgba(255,255,255,0.06)' : 'transparent',
+              border: active ? `1px solid ${S.greenBorder}` : '1px solid transparent',
+            }}>
+              <div style={{ fontSize: 8, color: S.textMuted, marginBottom: 3 }}>{['Пт', 'Сб', 'Вс', 'Пн', 'Вт', 'Ср', 'Чт'][i]}</div>
+              <div style={{ fontSize: 13, fontWeight: today || active ? 800 : 400, color: active ? S.green : today ? S.text : S.textMuted }}>{d}</div>
             </div>
-          ))}
-        </motion.div>
+          );
+        })}
+      </motion.div>
 
-        {/* Collapse button */}
-        <div style={{ ...cardStyle, padding: '12px', textAlign: 'center', fontSize: 13, color: C.textSec, fontWeight: 500 }}>
-          ↑ Свернуть
-        </div>
+      {/* Shift list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {shifts.map((s, i) => (
+          <motion.div key={i}
+            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.07 }}
+            style={{
+              background: S.card, border: `1px solid ${S.cardBorder}`,
+              borderRadius: 16, padding: '11px 12px',
+              display: 'flex', alignItems: 'center', gap: 10,
+              borderLeft: `3px solid ${s.color}`,
+            }}>
+            <div style={{ textAlign: 'center', minWidth: 30 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: S.text, lineHeight: 1 }}>{s.date.split(' ')[0]}</div>
+              <div style={{ fontSize: 8, color: S.textMuted, marginTop: 2 }}>{s.day}</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: S.text }}>{s.time}</div>
+              <div style={{ fontSize: 9, color: S.textSec, marginTop: 2 }}>{s.loc}</div>
+            </div>
+            <Badge color={s.color}>{s.status}</Badge>
+          </motion.div>
+        ))}
       </div>
-      <BottomNav active={1} />
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   SCREEN 3 — ПРОФИЛЬ
-══════════════════════════════════════════════════════ */
-export function ProfileScreen({ animate }) {
+/* ════════════════════════════════════════
+   SCREEN 3 — PAYROLL
+════════════════════════════════════════ */
+function PayrollScreen() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-      <TgHeader />
-      <div style={{ flex: 1, padding: '12px 12px 0', overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ fontSize: 26, fontWeight: 800, color: C.text, letterSpacing: '-0.02em' }}>Профиль</div>
-
-        {/* Avatar card */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.05 }}
-          style={{ ...cardStyle, padding: '18px', textAlign: 'center' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: '50%', background: '#E5E5EA',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, fontWeight: 800, color: C.text, margin: '0 auto 10px',
-          }}>ДБ</div>
-          <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>Даня Байманов</div>
-          <div style={{ fontSize: 12, color: C.textSec, marginTop: 2 }}>ООО АИС</div>
-        </motion.div>
-
-        {/* Rate */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.12 }}
-          style={{ ...cardStyle, padding: '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: C.textSec }}>Ставка</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>4 999 ₽/час</span>
-        </motion.div>
-
-        {/* Period toggle */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.18 }}
-          style={{ ...cardStyle, padding: '4px', display: 'flex', gap: 4 }}>
-          {['Неделя', 'Месяц', '3 месяца'].map((p, i) => (
-            <div key={p} style={{
-              flex: 1, textAlign: 'center', padding: '8px 4px', borderRadius: 12, fontSize: 12,
-              fontWeight: i === 1 ? 700 : 400,
-              color: i === 1 ? C.text : C.textSec,
-              background: i === 1 ? '#E5E5EA' : 'transparent',
-            }}>{p}</div>
-          ))}
-        </motion.div>
-
-        {/* Earnings card */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.24 }}
-          style={{ ...cardStyle, padding: '14px 16px' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.textSec, letterSpacing: '0.06em', marginBottom: 6 }}>ЗАРАБОТАНО</div>
-          <div style={{ fontSize: 30, fontWeight: 900, color: C.text, letterSpacing: '-0.03em', lineHeight: 1 }}>
-            {animate ? <CountUp to={7106} duration={1000} /> : '0'} ₽
-          </div>
-          <div style={{ fontSize: 11, color: C.textSec, marginTop: 5 }}>4 смен · 14.2 ч</div>
-        </motion.div>
-
-        {/* Bottom 2 cards */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.32 }}
-            style={{ ...cardStyle, flex: 1, padding: '12px 14px' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.textSec, letterSpacing: '0.05em', marginBottom: 5 }}>ПРОГНОЗ</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: C.text, letterSpacing: '-0.02em' }}>
-              {animate ? <CountUp to={13768} duration={1100} /> : '0'} ₽
-            </div>
-            <div style={{ fontSize: 9, color: C.textSec, marginTop: 3 }}>до конца месяца</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.38 }}
-            style={{ ...cardStyle, flex: 1, padding: '12px 14px' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: C.textSec, letterSpacing: '0.05em', marginBottom: 5 }}>ПОСЕЩАЕМОСТЬ</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: C.green, letterSpacing: '-0.02em' }}>400%</div>
-            <div style={{ fontSize: 9, color: C.textSec, marginTop: 3 }}>4 из 1 смен</div>
-          </motion.div>
-        </div>
-      </div>
-      <BottomNav active={2} />
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════
-   SCREEN 4 — АДМИН
-══════════════════════════════════════════════════════ */
-export function AdminScreen({ animate }) {
-  const menuItems = [
-    { icon: '📊', title: 'Обзор дня', sub: '0 на смене' },
-    { icon: '👥', title: 'Штат', sub: 'Сотрудники' },
-    { icon: '💰', title: 'Расчёт', sub: '9 285 ₽/мес' },
-    { icon: '⚡', title: 'Активность', sub: 'Лента событий' },
-  ];
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-      <TgHeader />
-      <div style={{ flex: 1, padding: '12px 12px 0', overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-        {/* Header */}
+    <div style={{ padding: '14px 14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 26, fontWeight: 800, color: C.text, letterSpacing: '-0.02em' }}>Управление</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 10, color: C.textSec }}>Авто</span>
-            <div style={{ ...cardStyle, padding: '4px 8px', display: 'flex', gap: 6, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <span style={{ fontSize: 14 }}>☀️</span>
-              <span style={{ fontSize: 14 }}>🌙</span>
-            </div>
-          </div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: S.text }}>Расчёт</div>
+          <Badge color={S.green}>Май 2026</Badge>
         </div>
+      </motion.div>
 
-        {/* 2x2 grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {menuItems.map((item, i) => (
-            <motion.div key={i}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={animate ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: 0.08 + i * 0.07 }}
-              style={{ ...cardStyle, padding: '14px', position: 'relative' }}
-            >
-              <div style={{ position: 'absolute', top: 12, right: 12, fontSize: 12, color: C.textMuted }}>›</div>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: C.textSec }}>{item.sub}</div>
-            </motion.div>
-          ))}
+      {/* Big card */}
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+        style={{
+          background: `linear-gradient(140deg, rgba(52,199,89,0.18), rgba(52,199,89,0.05))`,
+          border: `1px solid ${S.greenBorder}`, borderRadius: 20, padding: '18px', textAlign: 'center',
+        }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(52,199,89,0.7)', letterSpacing: '0.07em', marginBottom: 8 }}>ИТОГО К ВЫПЛАТЕ</div>
+        <div style={{ fontSize: 38, fontWeight: 900, color: S.green, letterSpacing: '-0.04em', lineHeight: 1 }}>
+          <CountUp to={24800} duration={1200} /> ₽
         </div>
+        <div style={{ fontSize: 10, color: S.textMuted, marginTop: 8 }}>автоматически рассчитано системой</div>
+      </motion.div>
 
-        {/* Full-width instruction */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={animate ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.38 }}
-          style={{ ...cardStyle, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>📖</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Инструкция</span>
-          </div>
-          <span style={{ fontSize: 14, color: C.textMuted }}>›</span>
+      {/* Breakdown */}
+      {[
+        ['Часов отработано', '96 ч', null],
+        ['Почасовая ставка', '258 ₽/ч', null],
+        ['Базовый расчёт', '24 768 ₽', null],
+        ['Корректировка', '+32 ₽', S.green],
+        ['Итого', '24 800 ₽', S.green],
+      ].map(([label, val, color], i) => (
+        <motion.div key={label}
+          initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.06 }}
+          style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '9px 0', borderBottom: i < 4 ? `1px solid ${S.sep}` : 'none',
+          }}>
+          <span style={{ fontSize: 12, color: i === 4 ? S.text : S.textSec, fontWeight: i === 4 ? 700 : 400 }}>{label}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: color || S.text }}>{val}</span>
         </motion.div>
-      </div>
-      <BottomNav active={3} />
+      ))}
+
+      {/* Export btn */}
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        style={{
+          background: 'rgba(255,255,255,0.07)', border: `1px solid ${S.cardBorder}`,
+          borderRadius: 14, padding: '12px', textAlign: 'center',
+          fontSize: 13, fontWeight: 700, color: S.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+        }}>
+        <span>📊</span> Экспорт в Excel
+      </motion.div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   MAIN 3D PHONE
-══════════════════════════════════════════════════════ */
-const SCREENS = [
-  { Screen: HomeScreen, label: 'Главная' },
-  { Screen: ScheduleScreen, label: 'График смен' },
-  { Screen: ProfileScreen, label: 'Профиль сотрудника' },
-  { Screen: AdminScreen, label: 'Панель администратора' },
+/* ════════════════════════════════════════
+   SCREEN 4 — ACTIVITY FEED
+════════════════════════════════════════ */
+const feed = [
+  { icon: '🟢', text: 'Смена началась', sub: 'Сегодня 09:01 · Офис', color: S.green },
+  { icon: '🔔', text: 'Назначена смена', sub: '19 мая · Склад №2', color: S.blue },
+  { icon: '✅', text: 'Смена завершена · 9ч', sub: 'Вчера 18:00', color: S.green },
+  { icon: '💰', text: 'Начислено 2 322 ₽', sub: '15 мая · за смену', color: S.orange },
+  { icon: '✅', text: 'Смена завершена · 8ч', sub: '15 мая 18:01', color: S.green },
+  { icon: '🔔', text: 'Напоминание о смене', sub: '14 мая · за 2 часа', color: S.blue },
+];
+function ActivityScreen() {
+  return (
+    <div style={{ padding: '14px 14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+        <div style={{ fontSize: 19, fontWeight: 800, color: S.text }}>Активность</div>
+        <div style={{ fontSize: 10, color: S.textMuted, marginTop: 2 }}>История событий</div>
+      </motion.div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, position: 'relative' }}>
+        <div style={{ position: 'absolute', left: 17, top: 22, bottom: 0, width: 1, background: S.sep }} />
+        {feed.map((item, i) => (
+          <motion.div key={i}
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 + i * 0.06 }}
+            style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 0' }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: '50%', flexShrink: 0, zIndex: 1,
+              background: `${item.color}18`, border: `1px solid ${item.color}30`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+            }}>{item.icon}</div>
+            <div style={{ flex: 1, paddingTop: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: S.text }}>{item.text}</div>
+              <div style={{ fontSize: 9, color: S.textMuted, marginTop: 2 }}>{item.sub}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════
+   NAV TABS
+════════════════════════════════════════ */
+const TABS = [
+  { icon: '🏠', label: 'Главная', Screen: DashScreen },
+  { icon: '📅', label: 'График', Screen: ScheduleScreen },
+  { icon: '💰', label: 'Расчёт', Screen: PayrollScreen },
+  { icon: '⚡', label: 'События', Screen: ActivityScreen },
 ];
 
+/* ════════════════════════════════════════
+   iPHONE 17 PRO MAX FRAME
+════════════════════════════════════════ */
 export default function Phone3D({ tilt = true }) {
-  const rotX = useMotionValue(tilt ? 6 : 0);
-  const rotY = useMotionValue(tilt ? -12 : 0);
-  const sRotX = useSpring(rotX, { stiffness: 100, damping: 22 });
-  const sRotY = useSpring(rotY, { stiffness: 100, damping: 22 });
+  const rotX = useMotionValue(tilt ? 7 : 0);
+  const rotY = useMotionValue(tilt ? -13 : 0);
+  const sX = useSpring(rotX, { stiffness: 90, damping: 20 });
+  const sY = useSpring(rotY, { stiffness: 90, damping: 20 });
 
-  const [idx, setIdx] = useState(0);
-  const [animKey, setAnimKey] = useState(0);
+  const [tab, setTab] = useState(0);
+  const [key, setKey] = useState(0);
 
-  // Mouse parallax
   useEffect(() => {
     if (!tilt) return;
-    const onMove = (e) => {
-      const dx = (e.clientX / window.innerWidth - 0.5) * 2;
-      const dy = (e.clientY / window.innerHeight - 0.5) * 2;
-      rotX.set(6 - dy * 5);
-      rotY.set(-12 + dx * 7);
+    const fn = e => {
+      rotX.set(7 - ((e.clientY / window.innerHeight) - 0.5) * 10);
+      rotY.set(-13 + ((e.clientX / window.innerWidth) - 0.5) * 14);
     };
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    window.addEventListener('mousemove', fn);
+    return () => window.removeEventListener('mousemove', fn);
   }, [tilt]);
 
-  // Auto-cycle
   useEffect(() => {
     const t = setInterval(() => {
-      setIdx(i => (i + 1) % SCREENS.length);
-      setAnimKey(k => k + 1);
-    }, 4500);
+      setTab(i => (i + 1) % TABS.length);
+      setKey(k => k + 1);
+    }, 4000);
     return () => clearInterval(t);
   }, []);
 
-  const { Screen } = SCREENS[idx];
+  const Screen = TABS[tab].Screen;
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'absolute', bottom: -30, left: '50%', transform: 'translateX(-50%)',
-        width: 220, height: 60, borderRadius: '50%',
-        background: 'radial-gradient(ellipse, rgba(52,199,89,0.2) 0%, transparent 70%)',
-        filter: 'blur(18px)', pointerEvents: 'none',
-      }} />
+    <div style={{ position: 'relative', display: 'inline-block', userSelect: 'none' }}>
+      {/* Floor glow */}
+      <motion.div
+        animate={{ opacity: [0.5, 0.8, 0.5] }} transition={{ repeat: Infinity, duration: 3 }}
+        style={{
+          position: 'absolute', bottom: -50, left: '50%', transform: 'translateX(-50%)',
+          width: 260, height: 80, borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(52,199,89,0.22) 0%, transparent 70%)',
+          filter: 'blur(22px)', pointerEvents: 'none',
+        }} />
 
-      <motion.div style={{ rotateX: sRotX, rotateY: sRotY, transformStyle: 'preserve-3d', perspective: 1400 }}>
-        {/* Phone chassis */}
+      <motion.div style={{ rotateX: sX, rotateY: sY, transformPerspective: 1400, transformStyle: 'preserve-3d' }}>
+        {/* ── Titanium chassis ── */}
         <div style={{
-          width: 255,
-          background: 'linear-gradient(160deg, #3a3a3c 0%, #1c1c1e 40%, #111 100%)',
-          borderRadius: 50,
-          padding: '13px 9px 10px',
-          border: '1px solid rgba(255,255,255,0.13)',
-          boxShadow: `
-            inset 0 1px 0 rgba(255,255,255,0.1),
-            inset 0 -1px 0 rgba(0,0,0,0.4),
-            0 0 0 0.5px rgba(0,0,0,0.6),
-            0 20px 60px rgba(0,0,0,0.7),
-            0 60px 120px rgba(0,0,0,0.5),
-            0 4px 12px rgba(0,0,0,0.4)
-          `,
+          width: 290,
+          background: 'linear-gradient(160deg, #4a4a4c 0%, #2e2e30 25%, #1c1c1e 60%, #141416 100%)',
+          borderRadius: 56,
+          padding: '16px 11px 12px',
           position: 'relative',
+          boxShadow: `
+            inset 0 1px 0 rgba(255,255,255,0.14),
+            inset 0 -1px 0 rgba(0,0,0,0.5),
+            inset 1px 0 0 rgba(255,255,255,0.06),
+            inset -1px 0 0 rgba(0,0,0,0.3),
+            0 0 0 1px rgba(0,0,0,0.8),
+            0 25px 70px rgba(0,0,0,0.75),
+            0 60px 130px rgba(0,0,0,0.5),
+            0 2px 6px rgba(0,0,0,0.6)
+          `,
         }}>
-          {/* Physical buttons */}
-          <div style={{ position: 'absolute', right: -3, top: 108, width: 4, height: 34, background: 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)', borderRadius: '0 3px 3px 0', boxShadow: '2px 0 4px rgba(0,0,0,0.4)' }} />
-          <div style={{ position: 'absolute', left: -3, top: 86, width: 4, height: 24, background: 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)', borderRadius: '3px 0 0 3px', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
-          <div style={{ position: 'absolute', left: -3, top: 118, width: 4, height: 38, background: 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)', borderRadius: '3px 0 0 3px', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
-          <div style={{ position: 'absolute', left: -3, top: 164, width: 4, height: 38, background: 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)', borderRadius: '3px 0 0 3px', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
+          {/* Action button (left top) */}
+          <div style={{ position: 'absolute', left: -4, top: 112, width: 4, height: 36,
+            background: 'linear-gradient(to right, #1a1a1c, #2a2a2c)',
+            borderRadius: '3px 0 0 3px',
+            boxShadow: '-2px 0 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }} />
+          {/* Volume up */}
+          <div style={{ position: 'absolute', left: -4, top: 160, width: 4, height: 48,
+            background: 'linear-gradient(to right, #1a1a1c, #2a2a2c)',
+            borderRadius: '3px 0 0 3px',
+            boxShadow: '-2px 0 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }} />
+          {/* Volume down */}
+          <div style={{ position: 'absolute', left: -4, top: 216, width: 4, height: 48,
+            background: 'linear-gradient(to right, #1a1a1c, #2a2a2c)',
+            borderRadius: '3px 0 0 3px',
+            boxShadow: '-2px 0 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }} />
+          {/* Power button (right) */}
+          <div style={{ position: 'absolute', right: -4, top: 168, width: 4, height: 68,
+            background: 'linear-gradient(to left, #1a1a1c, #2a2a2c)',
+            borderRadius: '0 3px 3px 0',
+            boxShadow: '2px 0 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }} />
 
           {/* Dynamic island */}
           <div style={{
-            width: 86, height: 26, background: '#000', borderRadius: 14,
-            margin: '0 auto 10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.04)',
+            width: 100, height: 30, background: '#000', borderRadius: 18,
+            margin: '0 auto 12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.03)',
+            position: 'relative',
           }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-            <div style={{ width: 24, height: 3.5, background: '#111', borderRadius: 4 }} />
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#0e0e0e', border: '1px solid #1a1a1a' }} />
+            <div style={{ width: 30, height: 4, background: '#0e0e0e', borderRadius: 4 }} />
           </div>
 
           {/* Screen bezel */}
           <div style={{
-            background: '#000', borderRadius: 40, padding: 2,
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04)',
+            background: '#000',
+            borderRadius: 44,
+            padding: '1.5px',
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.03)',
           }}>
-            {/* Screen */}
+            {/* Screen glass */}
             <div style={{
-              background: C.bg, borderRadius: 38,
-              height: 490, overflow: 'hidden', position: 'relative',
+              background: S.bg,
+              borderRadius: 43,
+              height: 530,
+              overflow: 'hidden',
+              position: 'relative',
             }}>
+              {/* Content */}
               <AnimatePresence mode="wait">
-                <motion.div key={animKey}
-                  initial={{ opacity: 0, y: 18 }}
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -18 }}
-                  transition={{ duration: 0.32, ease: [0.25, 0.1, 0.25, 1] }}
-                  style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                  style={{ position: 'absolute', inset: 0, overflowY: 'hidden' }}
                 >
-                  <Screen animate={true} />
+                  <Screen />
                 </motion.div>
               </AnimatePresence>
 
-              {/* Screen glare */}
+              {/* Bottom nav */}
               <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: '35%',
-                background: 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 100%)',
-                borderRadius: '38px 38px 0 0', pointerEvents: 'none',
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                background: 'rgba(17,17,19,0.88)', backdropFilter: 'blur(24px)',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex', padding: '9px 6px 20px',
+              }}>
+                {TABS.map((t, i) => {
+                  const active = i === tab;
+                  return (
+                    <button key={i} onClick={() => { setTab(i); setKey(k => k + 1); }}
+                      style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 0', position: 'relative' }}>
+                      {active && (
+                        <motion.div layoutId="nav-pill"
+                          style={{ position: 'absolute', inset: 0, borderRadius: 12, background: 'rgba(52,199,89,0.12)' }}
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }} />
+                      )}
+                      <span style={{ fontSize: 18, position: 'relative' }}>{t.icon}</span>
+                      <span style={{ fontSize: 8, fontWeight: active ? 700 : 400, color: active ? S.green : S.textMuted, position: 'relative' }}>
+                        {t.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Glass glare */}
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '40%',
+                background: 'linear-gradient(155deg, rgba(255,255,255,0.055) 0%, transparent 60%)',
+                borderRadius: '43px 43px 0 0', pointerEvents: 'none',
               }} />
             </div>
           </div>
 
-          {/* Home bar */}
-          <div style={{ width: 76, height: 4, background: 'rgba(255,255,255,0.22)', borderRadius: 2, margin: '10px auto 1px' }} />
+          {/* Home indicator */}
+          <div style={{ width: 82, height: 4.5, background: 'rgba(255,255,255,0.24)', borderRadius: 3, margin: '11px auto 1px', boxShadow: '0 1px 2px rgba(0,0,0,0.4)' }} />
         </div>
       </motion.div>
 
-      {/* Label + dots */}
-      <div style={{ textAlign: 'center', marginTop: 20 }}>
+      {/* Screen label */}
+      <div style={{ textAlign: 'center', marginTop: 22 }}>
         <AnimatePresence mode="wait">
-          <motion.div key={idx}
-            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 10, fontWeight: 500 }}
-          >
-            {SCREENS[idx].label}
+          <motion.div key={tab} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 12, fontWeight: 500 }}>
+            {TABS[tab].label}
           </motion.div>
         </AnimatePresence>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
-          {SCREENS.map((_, i) => (
-            <motion.button key={i}
-              onClick={() => { setIdx(i); setAnimKey(k => k + 1); }}
-              animate={{ width: i === idx ? 22 : 7, background: i === idx ? '#34C759' : 'rgba(255,255,255,0.2)' }}
-              style={{ height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', padding: 0 }}
-            />
+          {TABS.map((_, i) => (
+            <motion.button key={i} onClick={() => { setTab(i); setKey(k => k + 1); }}
+              animate={{ width: i === tab ? 24 : 7, background: i === tab ? S.green : 'rgba(255,255,255,0.18)' }}
+              transition={{ duration: 0.3 }}
+              style={{ height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', padding: 0 }} />
           ))}
         </div>
       </div>
     </div>
   );
 }
+
+/* Re-exports for ProductPreview compatibility */
+export const HomeScreen = DashScreen;
+export const ScheduleScreenExport = ScheduleScreen;
+export const ProfileScreen = PayrollScreen;
+export const AdminScreen = ActivityScreen;

@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { HomeScreen, ScheduleScreen, ProfileScreen, AdminScreen } from './Phone3D';
+import { HomeScreen, ScheduleScreenExport as ScheduleScreen, ProfileScreen, AdminScreen } from './Phone3D';
 
 const APP = {
   bg: '#1C1C1E', surface: '#2C2C2E', green: '#30D158',
