@@ -300,13 +300,13 @@ const TABS = [
 /* ════════════════════════════════════════
    iPHONE 17 PRO MAX FRAME
 ════════════════════════════════════════ */
-export default function Phone3D({ tilt = true }) {
+export default function Phone3D({ tilt = true, staticTab = null }) {
   const rotX = useMotionValue(tilt ? 7 : 0);
   const rotY = useMotionValue(tilt ? -13 : 0);
   const sX = useSpring(rotX, { stiffness: 90, damping: 20 });
   const sY = useSpring(rotY, { stiffness: 90, damping: 20 });
 
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(staticTab !== null ? staticTab : 0);
   const [key, setKey] = useState(0);
 
   useEffect(() => {
@@ -320,12 +320,13 @@ export default function Phone3D({ tilt = true }) {
   }, [tilt]);
 
   useEffect(() => {
+    if (staticTab !== null) return;
     const t = setInterval(() => {
       setTab(i => (i + 1) % TABS.length);
       setKey(k => k + 1);
     }, 4000);
     return () => clearInterval(t);
-  }, []);
+  }, [staticTab]);
 
   const Screen = TABS[tab].Screen;
 
@@ -466,23 +467,24 @@ export default function Phone3D({ tilt = true }) {
         </div>
       </motion.div>
 
-      {/* Screen label */}
-      <div style={{ textAlign: 'center', marginTop: 22 }}>
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 12, fontWeight: 500 }}>
-            {TABS[tab].label}
-          </motion.div>
-        </AnimatePresence>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
-          {TABS.map((_, i) => (
-            <motion.button key={i} onClick={() => { setTab(i); setKey(k => k + 1); }}
-              animate={{ width: i === tab ? 24 : 7, background: i === tab ? S.green : 'rgba(255,255,255,0.18)' }}
-              transition={{ duration: 0.3 }}
-              style={{ height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', padding: 0 }} />
-          ))}
+      {staticTab === null && (
+        <div style={{ textAlign: 'center', marginTop: 22 }}>
+          <AnimatePresence mode="wait">
+            <motion.div key={tab} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 12, fontWeight: 500 }}>
+              {TABS[tab].label}
+            </motion.div>
+          </AnimatePresence>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
+            {TABS.map((_, i) => (
+              <motion.button key={i} onClick={() => { setTab(i); setKey(k => k + 1); }}
+                animate={{ width: i === tab ? 24 : 7, background: i === tab ? S.green : 'rgba(255,255,255,0.18)' }}
+                transition={{ duration: 0.3 }}
+                style={{ height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', padding: 0 }} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

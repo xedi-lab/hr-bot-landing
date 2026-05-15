@@ -1,13 +1,7 @@
 'use client';
-import { useRef, useState, useEffect } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { HomeScreen, ScheduleScreenExport as ScheduleScreen, ProfileScreen, AdminScreen } from './Phone3D';
-
-const APP = {
-  bg: '#1C1C1E', surface: '#2C2C2E', green: '#30D158',
-  greenDim: 'rgba(48,209,88,0.15)', greenBorder: 'rgba(48,209,88,0.25)',
-  textMuted: 'rgba(255,255,255,0.5)', separator: 'rgba(255,255,255,0.08)',
-};
+import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Phone3D from './Phone3D';
 
 const sections = [
   {
@@ -20,168 +14,113 @@ const sections = [
       { icon: '🔔', text: 'Push-уведомления о новых сменах прямо в Telegram' },
       { icon: '📱', text: 'Открывается прямо внутри Telegram — без лишних приложений' },
     ],
-    Screen: HomeScreen,
+    tabIndex: 0,
   },
   {
     tag: 'График смен',
-    title: 'Расписание на весь месяц — визуально и понятно',
-    desc: 'Сотрудник видит все плановые, отработанные и выполненные смены в удобном календаре.',
+    title: 'Расписание на весь месяц — визуально',
+    desc: 'Все плановые смены видны сразу. Сотрудник знает когда и где работает — без звонков и уточнений.',
     features: [
-      { icon: '🟢', text: 'Цветовая маркировка: плановые, отработанные, выполненные' },
+      { icon: '🟢', text: 'Цветовые метки: плановые, в процессе, выполненные' },
       { icon: '📆', text: 'Навигация по месяцам вперёд и назад' },
       { icon: '✅', text: 'Подтверждение присутствия одним нажатием' },
       { icon: '⚡', text: 'Смена открывается и закрывается автоматически' },
     ],
-    Screen: ScheduleScreen,
+    tabIndex: 1,
   },
   {
-    tag: 'Профиль и зарплата',
-    title: 'Прозрачный расчёт без вопросов',
-    desc: 'Сотрудник видит ставку, заработок за период, прогноз до конца месяца и посещаемость.',
+    tag: 'Расчёт зарплат',
+    title: 'Считает сама — вы только проверяете',
+    desc: 'Ставка × часы + корректировки = итог. Система считает сама, бухгалтер не нужен. Экспорт в Excel за один клик.',
     features: [
-      { icon: '📊', text: 'Заработок за неделю, месяц или 3 месяца' },
-      { icon: '🔮', text: 'Прогноз дохода до конца месяца' },
-      { icon: '📈', text: 'Процент посещаемости по плановым сменам' },
-      { icon: '💳', text: 'Почасовая ставка всегда на виду' },
+      { icon: '⚡', text: 'Автоматический расчёт по почасовой ставке' },
+      { icon: '✏️', text: 'Ручные корректировки с комментарием' },
+      { icon: '📋', text: 'Выгрузка в Excel — один клик, готовый файл' },
+      { icon: '📆', text: 'История выплат по любому периоду' },
     ],
-    Screen: ProfileScreen,
+    tabIndex: 2,
   },
   {
-    tag: 'Для администратора',
-    title: 'Управление всей командой в одной панели',
-    desc: 'Обзор дня, штат сотрудников, расчёт зарплат и лента событий — всё в одном месте.',
+    tag: 'Лента событий',
+    title: 'Всё что происходит — в одном месте',
+    desc: 'Кто вышел, кто опоздал, какие начисления прошли — полная история в реальном времени.',
     features: [
-      { icon: '👥', text: 'Штат — список сотрудников и их статусы' },
-      { icon: '💰', text: 'Расчёт зарплат по всей команде за любой месяц' },
-      { icon: '⚡', text: 'Лента событий — кто вышел, кто опоздал' },
-      { icon: '☀️', text: 'Тема приложения синхронизируется с Telegram' },
+      { icon: '🟢', text: 'Автоматическая фиксация начала и конца смены' },
+      { icon: '🔔', text: 'Мгновенные уведомления при изменениях' },
+      { icon: '💰', text: 'История всех начислений по сотруднику' },
+      { icon: '📊', text: 'Полная хронология событий за любой период' },
     ],
-    Screen: AdminScreen,
+    tabIndex: 3,
   },
 ];
 
-function PhoneFrame({ Screen, active }) {
-  const [key, setKey] = useState(0);
-  useEffect(() => { if (active) setKey(k => k + 1); }, [active]);
-
-  return (
-    <div style={{
-      width: 240,
-      background: 'linear-gradient(145deg, #2a2a2a, #111)',
-      borderRadius: 44, padding: '12px 9px 9px',
-      border: '1.5px solid rgba(255,255,255,0.12)',
-      boxShadow: `
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 40px 100px rgba(0,0,0,0.8),
-        0 0 60px rgba(48,209,88,0.06)
-      `,
-      position: 'relative',
-    }}>
-      {/* Side buttons */}
-      <div style={{ position: 'absolute', right: -3, top: 90, width: 3, height: 28, background: '#1e1e1e', borderRadius: '0 3px 3px 0' }} />
-      <div style={{ position: 'absolute', left: -3, top: 74, width: 3, height: 20, background: '#1e1e1e', borderRadius: '3px 0 0 3px' }} />
-      <div style={{ position: 'absolute', left: -3, top: 102, width: 3, height: 34, background: '#1e1e1e', borderRadius: '3px 0 0 3px' }} />
-      <div style={{ position: 'absolute', left: -3, top: 144, width: 3, height: 34, background: '#1e1e1e', borderRadius: '3px 0 0 3px' }} />
-
-      {/* Dynamic island */}
-      <div style={{
-        width: 80, height: 24, background: '#000', borderRadius: 14,
-        margin: '0 auto 9px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a1a1a', border: '1px solid #2a2a2a' }} />
-        <div style={{ width: 22, height: 3, background: '#111', borderRadius: 3 }} />
-      </div>
-
-      {/* Screen */}
-      <div style={{
-        background: APP.bg, borderRadius: 34, height: 460,
-        overflow: 'hidden', position: 'relative',
-      }}>
-        <AnimatePresence mode="wait">
-          <motion.div key={key}
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{ position: 'absolute', inset: 0 }}
-          >
-            <Screen animate={active} />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Home bar */}
-      <div style={{ width: 70, height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2, margin: '8px auto 1px' }} />
-    </div>
-  );
-}
-
 function Section({ sec, index }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
+  const inView = useInView(ref, { once: true, margin: '-80px' });
   const flip = index % 2 === 1;
 
   return (
     <div ref={ref} style={{
       display: 'flex', alignItems: 'center',
-      gap: 'clamp(40px, 6vw, 100px)',
-      marginBottom: 'clamp(80px, 10vw, 140px)',
+      gap: 'clamp(40px, 5vw, 90px)',
+      marginBottom: 'clamp(80px, 10vw, 130px)',
       flexDirection: flip ? 'row-reverse' : 'row',
     }} className="product-row">
 
-      {/* Text */}
+      {/* Text side */}
       <motion.div
-        initial={{ opacity: 0, x: flip ? 30 : -30 }}
+        initial={{ opacity: 0, x: flip ? 28 : -28 }}
         animate={inView ? { opacity: 1, x: 0 } : {}}
-        transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         style={{ flex: 1 }}
       >
         <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: APP.greenDim, border: `1px solid ${APP.greenBorder}`,
-          borderRadius: 20, padding: '5px 14px', marginBottom: 20,
-          fontSize: 11, fontWeight: 700, color: APP.green, letterSpacing: '0.06em',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: 'rgba(52,199,89,0.1)', border: '1px solid rgba(52,199,89,0.22)',
+          borderRadius: 20, padding: '5px 14px', marginBottom: 18,
+          fontSize: 11, fontWeight: 700, color: '#34C759', letterSpacing: '0.06em',
         }}>{sec.tag.toUpperCase()}</div>
 
         <h2 style={{
-          fontSize: 'clamp(26px, 3vw, 42px)', fontWeight: 900,
-          letterSpacing: '-0.025em', color: '#fff', marginBottom: 16, lineHeight: 1.12,
+          fontSize: 'clamp(26px, 2.8vw, 40px)', fontWeight: 900,
+          letterSpacing: '-0.025em', color: '#fff', marginBottom: 14, lineHeight: 1.12,
         }}>{sec.title}</h2>
 
-        <p style={{ fontSize: 17, color: APP.textMuted, lineHeight: 1.65, marginBottom: 32 }}>{sec.desc}</p>
+        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: 28 }}>
+          {sec.desc}
+        </p>
 
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {sec.features.map((f, i) => (
-            <motion.li
-              key={i}
-              initial={{ opacity: 0, x: -12 }}
+            <motion.li key={i}
+              initial={{ opacity: 0, x: -10 }}
               animate={inView ? { opacity: 1, x: 0 } : {}}
-              transition={{ delay: 0.2 + i * 0.08 }}
+              transition={{ delay: 0.18 + i * 0.07 }}
               style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}
             >
               <div style={{
-                width: 34, height: 34, borderRadius: 10, background: APP.greenDim,
-                border: `1px solid ${APP.greenBorder}`,
+                width: 32, height: 32, borderRadius: 10,
+                background: 'rgba(52,199,89,0.1)', border: '1px solid rgba(52,199,89,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, flexShrink: 0,
+                fontSize: 15, flexShrink: 0,
               }}>{f.icon}</div>
-              <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', lineHeight: 1.55, paddingTop: 6 }}>{f.text}</span>
+              <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.55, paddingTop: 5 }}>
+                {f.text}
+              </span>
             </motion.li>
           ))}
         </ul>
       </motion.div>
 
-      {/* Phone */}
+      {/* Phone side */}
       <motion.div
-        initial={{ opacity: 0, x: flip ? -30 : 30, rotateY: flip ? 8 : -8 }}
-        animate={inView ? { opacity: 1, x: 0, rotateY: flip ? 3 : -3 } : {}}
-        transition={{ duration: 0.75, ease: [0.25, 0.1, 0.25, 1] }}
-        style={{
-          flex: '0 0 auto',
-          transformStyle: 'preserve-3d',
-          perspective: 1000,
-        }}
+        initial={{ opacity: 0, x: flip ? -28 : 28 }}
+        animate={inView ? { opacity: 1, x: 0 } : {}}
+        transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+        style={{ flex: '0 0 auto' }}
         className="product-phone"
       >
-        <PhoneFrame Screen={sec.Screen} active={inView} />
+        <Phone3D tilt={false} staticTab={sec.tabIndex} />
       </motion.div>
     </div>
   );
@@ -189,19 +128,19 @@ function Section({ sec, index }) {
 
 export default function ProductPreview() {
   return (
-    <section id="features" style={{ padding: '20px 24px 0', maxWidth: 1160, margin: '0 auto' }}>
-      {/* Section header */}
+    <section id="features" style={{ padding: '60px 24px 0', maxWidth: 1180, margin: '0 auto' }}>
+      {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 80 }}>
         <div style={{
           display: 'inline-block', background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20,
-          padding: '5px 16px', marginBottom: 20, fontSize: 12, fontWeight: 600,
-          color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em',
+          padding: '5px 16px', marginBottom: 20,
+          fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em',
         }}>ВОЗМОЖНОСТИ</div>
         <h2 style={{
-          fontSize: 'clamp(30px, 4vw, 48px)', fontWeight: 900,
-          letterSpacing: '-0.025em', color: '#fff',
-        }}>Реальное приложение. Реальные данные.</h2>
+          fontSize: 'clamp(30px, 4vw, 50px)', fontWeight: 900,
+          letterSpacing: '-0.03em', color: '#fff',
+        }}>Один инструмент вместо десяти</h2>
       </div>
 
       {sections.map((sec, i) => (
@@ -209,7 +148,7 @@ export default function ProductPreview() {
       ))}
 
       <style>{`
-        @media (max-width: 860px) {
+        @media (max-width: 900px) {
           .product-row { flex-direction: column !important; gap: 32px; }
           .product-phone { display: none; }
         }
