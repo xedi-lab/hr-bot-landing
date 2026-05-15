@@ -1,7 +1,8 @@
 'use client';
 import { motion } from 'framer-motion';
+import AnimatedPhone from './AnimatedPhone';
 
-function PhoneHero() {
+function PhoneHeroOld() {
   return (
     <div style={{
       width: 220, background: '#111', borderRadius: 36, padding: '12px 10px',
@@ -194,7 +195,7 @@ export default function Hero() {
           }}
           className="hero-phone"
         >
-          <PhoneHero />
+          <AnimatedPhone />
         </motion.div>
       </div>
 
