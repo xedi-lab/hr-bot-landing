@@ -17,17 +17,23 @@ const APP = {
 };
 
 function CountUp({ to, duration = 1000 }) {
-  const [v, setV] = useState(0);
+  const [v, setV] = useState(to);
+  const ran = useRef(false);
   useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    setV(0);
     let start = null;
+    let raf;
     const step = (ts) => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / duration, 1);
       setV(Math.round(to * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) requestAnimationFrame(step);
+      if (p < 1) raf = requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
-  }, [to, duration]);
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, []);
   return <>{v.toLocaleString('ru-RU')}</>;
 }
 
