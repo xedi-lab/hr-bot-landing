@@ -1,6 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import WorkixLogo from './WorkixLogo';
 
 const benefits = [
   {
@@ -57,10 +58,13 @@ export default function Benefits() {
             padding: '5px 16px', marginBottom: 20, fontSize: 12, fontWeight: 600,
             color: 'var(--text-muted)', letterSpacing: '0.05em',
           }}>ПРЕИМУЩЕСТВА</div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+            {inView && <WorkixLogo size="lg" animate={true} />}
+          </div>
           <h2 style={{
-            fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 800,
-            letterSpacing: '-0.02em', color: '#fff',
-          }}>Почему выбирают Workix</h2>
+            fontSize: 'clamp(16px, 2vw, 22px)', fontWeight: 500,
+            letterSpacing: '-0.01em', color: 'rgba(255,255,255,0.45)',
+          }}>Почему выбирают нас</h2>
         </motion.div>
 
         <div style={{

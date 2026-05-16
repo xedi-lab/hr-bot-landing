@@ -330,6 +330,16 @@ export default function AnimatedPhone() {
           background: '#141414', borderRadius: 32,
           minHeight: 390, overflow: 'hidden', position: 'relative',
         }}>
+          {/* App top bar */}
+          <div style={{
+            padding: '10px 14px 8px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff' }}>Work</span>
+            <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.03em', color: '#22c55e' }}>ix</span>
+          </div>
+
           {/* Screen content */}
           <div style={{ minHeight: 350, overflowY: 'hidden' }}>
             <AnimatePresence mode="wait">
