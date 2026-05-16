@@ -1,3 +1,6 @@
+'use client';
+import WorkixLogo from './WorkixLogo';
+
 export default function Footer() {
   return (
     <footer style={{
@@ -6,17 +9,9 @@ export default function Footer() {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       flexWrap: 'wrap', gap: 16,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 7,
-          background: 'var(--accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14,
-        }}>⚡</div>
-        <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>HR-Bot</span>
-      </div>
+      <WorkixLogo size="sm" animate={false} />
       <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-        © 2026 HR-Bot. Telegram Mini App для учёта смен.
+        © 2026 Workix. Telegram Mini App для учёта смен.
       </div>
       <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
         Сделано с ❤️ для малого бизнеса

@@ -50,7 +50,7 @@ export default function Hero() {
           {/* Subtext */}
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
             style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: 12, maxWidth: 500 }}>
-            HR-Bot — это новый шаг для малого бизнеса. Расписание, учёт часов и расчёт зарплат работают сами — прямо внутри Telegram.
+            Workix — это новый шаг для малого бизнеса. Расписание, учёт часов и расчёт зарплат работают сами — прямо внутри Telegram.
           </motion.p>
 
           {/* Value props */}

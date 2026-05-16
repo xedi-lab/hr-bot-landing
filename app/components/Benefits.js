@@ -60,7 +60,7 @@ export default function Benefits() {
           <h2 style={{
             fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 800,
             letterSpacing: '-0.02em', color: '#fff',
-          }}>Почему выбирают HR-Bot</h2>
+          }}>Почему выбирают Workix</h2>
         </motion.div>
 
         <div style={{

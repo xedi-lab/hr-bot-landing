@@ -300,7 +300,7 @@ export default function AnimatedPhone() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0,
             }}>⚡</div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>HR-Bot</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>Workix</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Назначена новая смена на 19 мая</div>
             </div>
           </motion.div>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import WorkixLogo from './WorkixLogo';
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -35,14 +36,8 @@ export default function Nav() {
         borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
       }}
     >
-      <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 8,
-          background: 'var(--accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16,
-        }}>⚡</div>
-        <span style={{ fontWeight: 700, fontSize: 17, color: 'var(--text)', letterSpacing: '-0.02em' }}>HR-Bot</span>
+      <a href="#" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+        <WorkixLogo size="md" animate={true} />
       </a>
 
       {/* Desktop links */}

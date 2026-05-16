@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "HR-Bot — Умный учёт рабочего времени",
+  title: "Workix — Умный учёт рабочего времени",
   description: "Telegram Mini App для управления сменами, расчёта зарплат и автоматических уведомлений. Для малого и среднего бизнеса.",
 };
 
