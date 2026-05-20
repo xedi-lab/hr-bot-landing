@@ -46,17 +46,22 @@ export default function ApplicationForm() {
           style={{ textAlign: 'center', marginBottom: 48 }}
         >
           <div style={{
-            display: 'inline-block', background: 'rgba(34,197,94,0.1)',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(34,197,94,0.1)',
             border: '1px solid rgba(34,197,94,0.25)', borderRadius: 20,
-            padding: '5px 16px', marginBottom: 20, fontSize: 12, fontWeight: 600,
+            padding: '6px 16px', marginBottom: 20, fontSize: 12, fontWeight: 700,
             color: '#22c55e', letterSpacing: '0.05em',
-          }}>ПОДКЛЮЧЕНИЕ</div>
+          }}>
+            <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }}
+              style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            7 ДНЕЙ БЕСПЛАТНО
+          </div>
           <h2 style={{
             fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800,
             letterSpacing: '-0.02em', color: '#fff', marginBottom: 14,
-          }}>Попробуйте бесплатно</h2>
-          <p style={{ fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Оставьте заявку — мы свяжемся в течение 24 часов и поможем с настройкой.
+          }}>Попробуйте Workix без риска</h2>
+          <p style={{ fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
+            Оставьте заявку — мы свяжемся с вами, всё настроим и дадим 7 дней полного доступа бесплатно. Никаких обязательств.
           </p>
         </motion.div>
 
@@ -78,9 +83,9 @@ export default function ApplicationForm() {
                 style={{ textAlign: 'center', padding: '20px 0' }}
               >
                 <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 10 }}>Заявка отправлена!</div>
-                <div style={{ fontSize: 15, color: 'var(--text-muted)' }}>
-                  Мы свяжемся с вами в Telegram в течение 24 часов.
+                <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 10 }}>Заявка принята!</div>
+                <div style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  Мы напишем вам в Telegram в течение дня — настроим всё и запустим ваши 7 дней бесплатно.
                 </div>
               </motion.div>
             ) : (
@@ -165,10 +170,10 @@ export default function ApplicationForm() {
                     onMouseEnter={e => { if (status !== 'loading') e.target.style.transform = 'scale(1.02)'; }}
                     onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                   >
-                    {status === 'loading' ? 'Отправляем...' : 'Отправить заявку →'}
+                    {status === 'loading' ? 'Отправляем...' : 'Начать 7 дней бесплатно →'}
                   </button>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-                    Нажимая кнопку, вы соглашаетесь на обработку персональных данных
+                    Мы свяжемся с вами в Telegram в течение дня и поможем с настройкой
                   </p>
                 </div>
               </motion.form>
